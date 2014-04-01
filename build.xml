@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf8" ?>
+<project basedir="." default="compile">
+  <property name="dst" value="classes"/>
+  <path id="cp">
+    <fileset dir="lib">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+  <target name="compile">
+    <delete dir="${dst}"/>
+    <mkdir dir="${dst}"/>
+    <javac fork="true" debug="on" destdir="${dst}" srcdir="src" classpathref="cp" includeantruntime="true"/>
+  </target>
+</project>

@@ -1,0 +1,4 @@
+*.java~
+build.xml~
+*#*
+classes
