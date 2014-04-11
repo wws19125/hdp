@@ -456,7 +456,7 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
       warnOnceIfDeprecated(name); //log.info,提示一下
       for (String newKey : keyInfo.newKeys) {
         if(newKey != null) {
-	    names.add(newKey); //放到names里面
+	    names.add(newKey); //将new key放到names里面
         }
       }
     }
@@ -466,9 +466,9 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
     for(String n : names) {
 	String deprecatedKey = reverseDeprecatedKeyMap.get(n); //name本身可能就是new key
 	  if (deprecatedKey != null && !getOverlay().containsKey(n) &&
-	      getOverlay().containsKey(deprecatedKey)) {
-	    getProps().setProperty(n, getOverlay().getProperty(deprecatedKey));
-	    getOverlay().setProperty(n, getOverlay().getProperty(deprecatedKey));
+	      getOverlay().containsKey(deprecatedKey)) {  
+	      getProps().setProperty(n, getOverlay().getProperty(deprecatedKey)); //获取old key的值
+	      getOverlay().setProperty(n, getOverlay().getProperty(deprecatedKey)); //
 	  }
     }
     return names.toArray(new String[names.size()]);
@@ -509,7 +509,7 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
   }
   
   private Properties properties;
-  private Properties overlay;
+  private Properties overlay; //该参数从getOverlay()函数中获取，并且在handleDeprecated和set函数中添加值，最初始的值是从set中添加.
   private ClassLoader classLoader;
   {
       classLoader = Thread.currentThread().getContextClassLoader(); //获取当前贤臣的ClassLoader
@@ -2034,9 +2034,9 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
       docBuilderFactory.setIgnoringComments(true);
       
       //allow includes in the xml file
-      docBuilderFactory.setNamespaceAware(true);  //不懂===================
+      docBuilderFactory.setNamespaceAware(true);  //不懂 == 处理namespace属性
       try {
-          docBuilderFactory.setXIncludeAware(true); //不懂=================
+          docBuilderFactory.setXIncludeAware(true); //不懂 == 处理XInclude节点
       } catch (UnsupportedOperationException e) {
         LOG.error("Failed to set setXIncludeAware(true) for parser "
                 + docBuilderFactory
@@ -2083,11 +2083,11 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
       if (root == null) {
         root = doc.getDocumentElement();
       }
-      Properties toAddTo = properties;
-      if(returnCachedProperties) {
+      Properties toAddTo = properties; //当前配置信息将会存放在toAddTo中,同时，新的配置信息将会存放在toAddTo中，由于同地址，等于存放在了properties中
+      if(returnCachedProperties) {    // 
         toAddTo = new Properties();
       }
-      if (!"configuration".equals(root.getTagName()))
+      if (!"configuration".equals(root.getTagName())) //不是标准的configuration文件,一同遍历该资源，寻找configuration节点
         LOG.fatal("bad conf file: top-level element not <configuration>");
       NodeList props = root.getChildNodes();
       for (int i = 0; i < props.getLength(); i++) {
@@ -2099,9 +2099,9 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
           loadResource(toAddTo, new Resource(prop, name), quiet);
           continue;
         }
-        if (!"property".equals(prop.getTagName()))
+        if (!"property".equals(prop.getTagName())) //<property>节点
           LOG.warn("bad conf file: element not <property>");
-        NodeList fields = prop.getChildNodes();
+        NodeList fields = prop.getChildNodes();  //<property>子节点，即name value final source
         String attr = null;
         String value = null;
         boolean finalParameter = false;
@@ -2120,14 +2120,14 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
           if ("final".equals(field.getTagName()) && field.hasChildNodes())
             finalParameter = "true".equals(((Text)field.getFirstChild()).getData());
           if ("source".equals(field.getTagName()) && field.hasChildNodes())
-            source.add(StringInterner.weakIntern(
+	      source.add(StringInterner.weakIntern( //获取常量池中的常量
                 ((Text)field.getFirstChild()).getData()));
         }
-        source.add(name);
+        source.add(name); //加入资源名称
         
         // Ignore this parameter if it has already been marked as 'final'
         if (attr != null) {
-          if (deprecatedKeyMap.containsKey(attr)) {
+	    if (deprecatedKeyMap.containsKey(attr)) { //判断是否是old key
             DeprecatedKeyInfo keyInfo = deprecatedKeyMap.get(attr);
             keyInfo.accessed = false;
             for (String key:keyInfo.newKeys) {
@@ -2144,7 +2144,7 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
       }
       
       if (returnCachedProperties) {
-        overlay(properties, toAddTo);
+	  overlay(properties, toAddTo); //将加载的配置信息放到properties中去
         return new Resource(toAddTo, name);
       }
       return null;
@@ -2170,17 +2170,17 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
   }
   
   private void loadProperty(Properties properties, String name, String attr,
-      String value, boolean finalParameter, String[] source) {
+			    String value, boolean finalParameter, String[] source) { //source = source+name
     if (value != null) {
-      if (!finalParameters.contains(attr)) {
-        properties.setProperty(attr, value);
-        updatingResource.put(attr, source);
-      } else {
+	if (!finalParameters.contains(attr)) { //不是final
+	    properties.setProperty(attr, value); //传参传过来的properties
+        updatingResource.put(attr, source); 
+	} else {  //final节点，不能覆盖
         LOG.warn(name+":an attempt to override final parameter: "+attr
             +";  Ignoring.");
       }
     }
-    if (finalParameter) {
+    if (finalParameter) {  //加入final
       finalParameters.add(attr);
     }
   }
