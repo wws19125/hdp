@@ -512,7 +512,7 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
   private Properties overlay; //该参数从getOverlay()函数中获取，并且在handleDeprecated和set函数中添加值，最初始的值是从set中添加.
   private ClassLoader classLoader;
   {
-      classLoader = Thread.currentThread().getContextClassLoader(); //获取当前贤臣的ClassLoader
+      classLoader = Thread.currentThread().getContextClassLoader(); //获取当前线程的ClassLoader，保证为同一个classloader
     if (classLoader == null) {
       classLoader = Configuration.class.getClassLoader();
     }
@@ -822,12 +822,12 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
     }
     getOverlay().setProperty(name, value);
     getProps().setProperty(name, value);
-    if(source == null) {
+    if(source == null) {        //加入到updatingResource中去
       updatingResource.put(name, new String[] {"programatically"});
     } else {
       updatingResource.put(name, new String[] {source});
     }
-    String[] altNames = getAlternateNames(name);
+    String[] altNames = getAlternateNames(name);  //获取别名
     if (altNames != null && altNames.length > 0) {
       String altSource = "because " + name + " is deprecated";
       for(String altName : altNames) {
@@ -838,7 +838,7 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
         }
       }
     }
-    warnOnceIfDeprecated(name);
+    warnOnceIfDeprecated(name); //如果为old key，发出提示
   }
 
   private void warnOnceIfDeprecated(String name) {
