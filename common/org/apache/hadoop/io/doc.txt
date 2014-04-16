@@ -1,0 +1,2 @@
+		Writable
+	writable 是一个接口，包含两个接口方法，一个为write,是用来序列化对象到out参数中；另外一个方法为readFields，作用同write相反.

@@ -674,7 +674,7 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
     reloadConfiguration();
   }
   
-  private static Pattern varPat = Pattern.compile("\\$\\{[^\\}\\$\u0020]+\\}");
+  private static Pattern varPat = Pattern.compile("\\$\\{[^\\}\\$\u0020]+\\}"); // \u0020为空格
   private static int MAX_SUBST = 20;
 
   private String substituteVars(String expr) {
@@ -683,7 +683,7 @@ public class Configuration implements Iterable<Map.Entry<String,String>>,
     }
     Matcher match = varPat.matcher("");
     String eval = expr;
-    for(int s=0; s<MAX_SUBST; s++) {
+    for(int s=0; s<MAX_SUBST; s++) { //循环20次寻找变量，如${a}/b,寻找${xx}变量，并在后面进行替换
       match.reset(eval);
       if (!match.find()) {
         return eval;
