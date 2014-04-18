@@ -125,7 +125,7 @@ public class WritableComparator implements RawComparator {
   @Override
   public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) { //表示这个方法看不懂啥意思  -----流程是：将流反序列化，然后直接进行比较，不需要还原对象本身
     try {
-      buffer.reset(b1, s1, l1);                   // parse key1 b1为数组，s1为在b1中的起始位置，l1为长度
+      buffer.reset(b1, s1, l1);                   // parse key1 b1为数组，s1为在b1中的起始位置，l1为长度,该语句的意思是获取key的流
       key1.readFields(buffer);
       
       buffer.reset(b2, s2, l2);                   // parse key2

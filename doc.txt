@@ -3,4 +3,4 @@ isAssignableFrom
 interface compareable<T>
 interface comparator<T>
 classloader
-JNI java native interface   native关键字
+JNI java native interface   native关键字b
