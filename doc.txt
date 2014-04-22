@@ -4,3 +4,4 @@ interface compareable<T>
 interface comparator<T>
 classloader
 JNI java native interface   native关键字b
+StringBuilder 传参引用
