@@ -1,3 +1,7 @@
 	hadoop技术内幕 深入解析Hadoop common和hdfs架构设计与实现原理
   C4
   java远程方法调用RMI remote method invoke
+
+         hadoop实战
+  TextInputFormat key为一行的字节偏移 value为行内容
+  KeyValueTextInputFormat key为分隔符前面的内容，value为后面的内容
