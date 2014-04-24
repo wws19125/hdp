@@ -1,0 +1,59 @@
+===============================CLI操作=========================
+  //在命令行里面运行命令
+  hive -e 'command'
+  //执行文件中的命令
+  hive -f 'file'
+  // -S quit mode 
+  // !command 执行shell命令;dfs -option 执行hdfs命令
+  ================文件操作，搞不明白===========
+
+ ===============================DDL操作=======================
+create table test(a INT,b INT)
+[1] partition
+	  create table test() partitioned by(xxx xx,xxx xx) row format delimited fields terminated by ',';
+  //插入数据:
+  load data local inpath 'xxx' into table partition(xxx=xx);	  
+  
+  //增加具体分区，前提是分区已经建立好
+  alter table test add partition(xxx=xx,xxx=xx);
+  
+  //表操作
+  alter table test rename to newname
+  alter table test add columns(name type)
+  alter table test add columns(name type comment 'comment')
+  //替换所有的列
+  alter table test replace columns(name type,name type comment 'xxx')
+
+  //join操作 ,只有相等的条件才可以join
+  left right full outer join
+  // Joins are NOT commutative! Joins are left-associative regardless	 of whether they are LEFT or RIGHT joins.
+  //连接是左相关的
+  SELECT a.val1, a.val2, b.val, c.val FROM a JOIN b ON (a.key = b.key) LEFT OUTER JOIN c ON (a.key = c.key)
+  a join b 后，a.key就没了，后面a.key就不存在了
+  //left semi join，替代in/not in/exists/not exists,它的限制做用是：右边的表，只是做引用.
+  select a.key,a.value from a where a.key in (select b.key from b)
+  select a.key,a.value from a left semi join b on (a.key=b.key)
+  //如果要连接的表很小，可以直接在map里面执行，得出结果
+  select /*+ mapjoin(b) */ a.key,a.value from a join b on a.key = b.key  
+
+  //插入多张表
+  MULTITABLE INSERT
+   FROM src
+  INSERT OVERWRITE TABLE dest1 SELECT src.* WHERE src.key < 100
+  INSERT OVERWRITE TABLE dest2 SELECT src.key, src.value WHERE src.key >= 100 and src.key < 200
+  INSERT OVERWRITE TABLE dest3 PARTITION(ds='2008-04-08', hr='12') SELECT src.key WHERE src.key >= 200 and src.key < 300
+  INSERT OVERWRITE LOCAL DIRECTORY '/tmp/dest4.out' SELECT src.value WHERE src.key >= 300;
+
+
+ ================================DML操作=======================
+  //加载数据进入tb
+  load data [local] inpath 'xxx' [overwrite] into table xxx;
+  local 指定从本地读取，否则从hdfs读取文件
+  overwrite 删除原有数据，否则添加到末尾
+  //取数据
+  insert overwrite [local] directory 'path' select * from test;
+  //插入表数据
+  insert overwrite table test select * from test2;
+  insert into table test select * from test2;
+  //group by、order by同sql
+  //
