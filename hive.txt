@@ -1,3 +1,99 @@
+/*************************************************************
+******************************阅读须知*************************
+************** //新的知识点               **********************
+************** ##上一个//知识点内的小知识点  *********************
+************** @@ 传送门，具体解释地方	 *********************
+************** > 代码			 *********************
+**************************************************************/
+
+===============================Tutorial=======================
+  //类型
+  //整型
+  tinyint 1byte
+  smallint 2byte
+  int 4byte
+  bigint 8byte
+  //boolean
+  boolean true/false
+  //floationg point numbers
+  float 单精度
+  double double precision
+  //String type
+  String
+  //The Types are organized in the following hierarchy (where the parent is a super type of all the children instances):
+
+    Type
+        Primitive Type
+            Number
+                DOUBLE
+                    FLOAT
+                        BIGINT
+                            INT
+                                SMALLINT
+                                    TINYINT
+                    STRING
+            BOOLEAN
+  //复杂类型
+  Structs
+  Maps
+  Arrays
+  
+  //各种操作，函数，清参考手册Tutorial 传送门:https://cwiki.apache.org/confluence/display/Hive/Tutorial#Tutorial-DataUnits
+  
+  //表操作
+  table->partition->Bucket(cluster,clustered by 和 sorted by 不影响数据的导入，用户需要自己分桶和排序)
+  bucket主要作用是：
+  1 数据的采样
+  2 提升某些查询效率，例如mapside join
+  //bucket的创建：
+  >create table test(...) 
+  >partitioned by(...) 
+  >cluster by(xx) sorted by(xx) into n bucket 
+  >row format delimited fields 
+  >terminated by ',';
+  //采样
+  >select * from tests tablesample(bucket x out of y on id); //y需要为bucket总算的因式或这倍数,这样x/y*n，取到总数的这些倍
+  //row format delimited
+  ## filelds
+  fields terminated by ','
+  ## collections arrays or  maps
+  collections items terminated by'2'
+  ## map keys 
+  map keys terminated by '3'
+  
+  //store as hive文件的存储 @@http://blog.csdn.net/yfkiss/article/details/7787742
+  ## textfile 默认格式，数据不做压缩，磁盘开销大，数据解析开销大
+  ## sequencefile hadoop api提供的一种二进制文件支持，使其具有使用方便、可分割、可压缩
+  ## rcfile 是一种行列存储相结合的存储方式。首先，其将数据按行分块，保证同一个record在一个块上，避免读一个记录需要读取多个block。其次，块数据列式存储，有利于数据压缩和快速的列存取
+  ## selfdefine 当用户的数据文件格式不能被当前 Hive 所识别的时候，可以自定义文件格式。用户可以通过实现inputformat和outputformat来自定义输入输出格式
+  //浏览数据表 分区
+  >show tables
+  >show tables 'xx.*'
+  >show partitions tablename
+  >describe tablename
+  >describe extended tablename
+  >desc extended tablename //详细
+  >describe extended tablename partition (xxxx);
+  //修改表
+  >alter table test drop partition (xxxx) //删除partition
+  //加载数据
+  ## load data ...
+  ## 直接将对应文件复制到相应位置，创建表的时候制定该位置 @@ http://blog.csdn.net/cnweike/article/details/6928620
+  >create external table test(...)
+  >row ...
+  >location 'path';
+  >dfs -put /xxx /xxx;
+  >from test ........
+  //合并 union
+  ## union all ,该合并只能出现在子句中，并且需要有别名（例子中tmp为别名）
+  > select id,name from
+  > (select a.id,a.name from tests a union all select b.id,b.name from test b) tmp;  
+  //数组操作
+  >create table test(arr ARRAY<type>);
+  >select test.arr[index] from xxx test;
+  //map
+  >create table test(mp map<type,type>);
+  >select mp[key] from test;
 ===============================CLI操作=========================
   //在命令行里面运行命令
   hive -e 'command'
@@ -57,3 +153,47 @@ create table test(a INT,b INT)
   insert into table test select * from test2;
   //group by、order by同sql
   //
+
+================================DDL手册=============================
+  //Overview
+  HiveQL DDL statements are documented here, including:
+
+    CREATE DATABASE/SCHEMA, TABLE, VIEW, FUNCTION, INDEX
+    DROP DATABASE/SCHEMA, TABLE, VIEW, INDEX
+    TRUNCATE TABLE
+    ALTER DATABASE/SCHEMA, TABLE, VIEW
+    MSCK REPAIR TABLE (or ALTER TABLE RECOVER PARTITIONS)
+    SHOW DATABASES/SCHEMAS, TABLES, TBLPROPERTIES, PARTITIONS, FUNCTIONS, INDEX[ES], COLUMNS, CREATE TABLE
+    DESCRIBE DATABASE, table_name, view_name
+  //database操作
+  ## create
+  create (database|schema) [IF NOT EXISTS] dbname
+  [comment database_comment]
+  [location hdfs_path]
+  [with dbproperties (property_name=property_value...)]
+  ## drop
+  DROP (DATABASE|SCHEMA) [IF EXISTS] database_name [RESTRICT|CASCADE];
+  ## alter 
+  ALTER (DATABASE|SCHEMA) database_name SET DBPROPERTIES (property_name=property_value, ...);
+  // External Tables 附加表
+  如果你已经构建好了表数据，那么可以采用这个表，需要指定location
+  //创建一个虚表 ctas
+  ## 缺点
+     ## 目标表不能有partition
+     ## 目标表不能为external 表
+  >create table test
+  >row format serde 'org.apache.hadoop.hive.serde2.columnar.ColumnarSerde'
+  >select (key%1024) new_key,concat(key,val) key_value
+  >from key_value_store
+  >sort by new_key,key_value;
+  //创建副本表 create table like
+  ## 从一个已经存在的表创建一个同样表结构的表（不包含数据)
+  >create table test1 like test; 
+  //创建Bucketed Sorted Tables
+  ## A skewed table is a special type of table where the values that appear very often (heavy skew) are split out into separate files and rest of the values go to some other file..
+  >create table test(key string,name string)
+  >skewed by (key) on('1','2','5');
+  >CREATE TABLE list_bucket_multiple (col1 STRING, col2 int, col3 STRING) 
+  >SKEWED BY (col1, col2) ON (('s1',1), ('s3',3), ('s13',13), ('s78',78));
+  //drop table [if exists] tablename
+    
