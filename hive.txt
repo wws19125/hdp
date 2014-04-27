@@ -196,4 +196,120 @@ create table test(a INT,b INT)
   >CREATE TABLE list_bucket_multiple (col1 STRING, col2 int, col3 STRING) 
   >SKEWED BY (col1, col2) ON (('s1',1), ('s3',3), ('s13',13), ('s78',78));
   //drop table [if exists] tablename
-    
+  //删除表/分区数据
+  TRUNCATE TABLE table_name [PARTITION partition_spec];
+  partition_spec:
+  : (partition_col = partition_col_value, partition_col = partiton_col_value, ...)
+  //修改表/分区/列
+  ## alter table test rename to xxx
+  ## alter table set tblproperties properties
+  ALTER TABLE table_name SET TBLPROPERTIES table_properties
+  table_properties:
+  : (property_name = property_value, property_name = property_value, ... )
+  >alter table test set tblproperties('comment'=xxx);
+  ##分区操作
+    ## 增加具体分支
+    alter table test add [if not exisits] partition partition_spec [ location 'location'] partition_spec [....]
+    ## 动态分支管理
+       ## 重命名
+       > alter table test partition (academy=xxx) rename to partition (academy=xxx);
+       ## 复制分区数据
+       >alter table test exchange partition(xxx=xxx) with table t;
+       ## 恢复分区
+       msck repair table table_name;
+       ## 删除分区
+       > alter table test drop [if exists] partition partition_spec;
+       > alter table test drop [if exists] partition partition_spec IGNORE PROTECTION //对于写了 NO DROP CASCADE保护的表
+       ## 压缩/解压分区
+       ALTER TABLE table_name ARCHIVE PARTITION partition_spec;
+       ALTER TABLE table_name UNARCHIVE PARTITION partition_spec;
+  //修改表或者分区
+  ## 修改文件格式
+  alter table test [partition partition_spec] set fileformat file_format
+  ## 修改位置
+  alter table test [partition partition_spec] set location 'location'
+  ## touch 
+  alter table test touche [partition partition_spec]
+  //压缩
+  
+  //修改列
+  alter table test change [column] col_old_name col_new_name column_type [comment col_comment] [first|after column_name]
+  >alter table test change id uid int first;
+  //新增|替换
+  alter table test add|replace columns (col_name type,..);
+  //视图操作
+  CREATE VIEW [IF NOT EXISTS] view_name [(column_name [COMMENT column_comment], ...) ]
+  [COMMENT view_comment]
+  [TBLPROPERTIES (property_name = property_value, ...)]
+  AS SELECT ...
+  //删除视图 
+  > drop view test;
+  //显示创建语句
+  > show create table test;
+  //设置视图属性
+  > alter view test set tblproperties table_pro;
+  //修改view的select约束
+  alter view view_name as select_sql
+  
+  //索引操作
+  //创建
+  CREATE INDEX index_name
+  ON TABLE base_table_name (col_name, ...)
+  AS index_type
+  [WITH DEFERRED REBUILD]
+  [IDXPROPERTIES (property_name=property_value, ...)]
+  [IN TABLE index_table_name]
+  [
+	 [ ROW FORMAT ...] STORED AS ...
+   	 | STORED BY ...
+  ]
+  [LOCATION hdfs_path]
+  [TBLPROPERTIES (...)]
+  [COMMENT "index comment"]
+  //删除
+  drop index [if exists] index_name on table_name
+  //修改
+  >alter index index_name on table_name [partition partition_spec] rebuild
+  
+  -----------------------------------------------------------------------
+  //函数操作
+  //创建临时func
+  create temporary function function_name as class_name //在本次对话中有效
+  //删除func
+  drop temporary function [if exists] function_name
+  //permanent functions
+  -----------------------------------------------------------------------
+
+  //权限管理
+  //show命令
+  SHOW (DATABASES|SCHEMAS) [LIKE identifier_with_wildcards];
+  SHOW TABLES [IN database_name] [identifier_with_wildcards];
+  SHOW PARTITIONS table_name
+  SHOW PARTITIONS table_name PARTITION(ds='2010-03-03');            (Hive 0.6 and later)
+  SHOW PARTITIONS table_name PARTITION(hr='12');                    (Hive 0.6 and later)
+  SHOW PARTITIONS table_name PARTITION(ds='2010-03-03', hr='12');   (Hive 0.6 and later)
+  //指定数据库
+  SHOW PARTITIONS [db_name.]table_name [PARTITION(partition_desc)]            (Hive 0.13.0 and later)
+  //显示属性
+  SHOW TBLPROPERTIES tbname; //全部属性
+  SHOW TBLPROPERTIES tbname('xxx'); //指定属性
+  //show create
+  SHOW CREATE TABLE ([db_name.]table_name|view_name)
+  //show index
+  SHOW [FORMATTED] (INDEX|INDEXES) ON table_name [(FROM|IN) db_name]
+  //show columns
+  SHOW COLUMNS (FROM|IN) table_name [(FROM|IN) db_name]
+  // show functions
+  SHOW FUNCTIONS 'XXX‘
+  ---------------------------------------------------------------------
+  //show 权限
+  //show locks
+  //show transactions
+  //show compacttions
+  ----------------------------------------------------------------------
+
+  // describe
+  //describe database db_name
+  //DESCRIBE [EXTENDED|FORMATTED] [db_name.]table_name[DOT col_name ( [DOT field_name] | [DOT '$elem$'] | [DOT '$key$'] | [DOT '$value$'] )* ]
+  //DESCRIBE [EXTENDED|FORMATTED] [db_name.]table_name PARTITION partition_spec
+  //DESCRIBE page_view PARTITION (ds='2008-08-08');
