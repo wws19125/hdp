@@ -313,3 +313,142 @@ create table test(a INT,b INT)
   //DESCRIBE [EXTENDED|FORMATTED] [db_name.]table_name[DOT col_name ( [DOT field_name] | [DOT '$elem$'] | [DOT '$key$'] | [DOT '$value$'] )* ]
   //DESCRIBE [EXTENDED|FORMATTED] [db_name.]table_name PARTITION partition_spec
   //DESCRIBE page_view PARTITION (ds='2008-08-08');
+
+================================DML手册==================================
+
+
+================================Select==================================
+  >select * from test where xx>xx;
+  // ALL and DISTINCT 
+  >select col from test;
+  >select distinct col from test;
+  // HAVING
+  >select x from x group by x having sum(x)>0;
+  >SELECT col1 FROM (SELECT col1, SUM(col2) AS col2sum FROM t1 GROUP BY col1) t2 WHERE t2.col2sum > 10
+  // LIMIT
+  >select * from x limit x;
+  //order by / sort by
+  order by 保证全部顺序
+  sort by 只是在本次reducer中保持顺序
+  
+  //Lateral View @@ http://hi.baidu.com/lzpsky/item/a5c747ccecd94e350831c6d2
+  //使用explore等函数时候，有一些限制
+	## No other expressions are allowed in SELECT
+           SELECT pageid, explode(adid_list) AS myCol... is not supported
+    	## UDTF's can't be nested
+           SELECT explode(explode(adid_list)) AS myCol... is not supported
+    	## GROUP BY / CLUSTER BY / DISTRIBUTE BY / SORT BY is not supported
+           SELECT explode(adid_list) AS myCol ... GROUP BY myCol is not supported
+    这时就可以利用later view 了
+  
+====================================Union===============================
+  //语法
+  select_statement UNION ALL select_statement UNION ALL select_statement ...
+
+====================================子查询===============================
+  //在from中运用子查询
+  SELECT ... FROM (subquery) name ...
+  SELECT ... FROM (subquery) AS name ...   (Note: Only valid starting with Hive 0.13.0)
+  //在where中
+  sql_statement where xx in (subqueries)
+  sql_statement where exists (subqueries)
+    ## 缺点
+      ## 子查询只能在表达式的右边
+      ## in/not in 子查询只能选一列
+      ## exists/not exists 必须至少有一个关联谓词
+      ## 对父查询的引用，只能在where中
+
+======================================数据采样(Sampling)====================
+  //语法
+  table_sample: TABLESAMPLE (BUCKET x OUT OF y [ON colname])
+  colname可以换成rand()
+  //Block Sampling 按照数据大小比例取数据，以block尺寸为基准.
+  block_sample: TABLESAMPLE (n PERCENT)
+  也可指定读取大小
+  block_sample: TABLESAMPLE (ByteLengthLiteral)
+  ByteLengthLiteral : (Digit)+ ('b' | 'B' | 'k' | 'K' | 'm' | 'M' | 'g' | 'G')
+  也可指定row count
+  block_sample: TABLESAMPLE (n ROWS)
+
+
+======================================解释查询=============================
+  //语法
+  EXPLAIN [EXTENDED|DEPENDENCY] query //EXTENDED和DEPENDENCY可以提供额外的信息，一般都是物理信息，比如文件名.
+
+=====================================虚拟列 Virtual Columns==================
+  // 0.8.0提供了两个虚拟列
+    ## INPUT__FILE__NAME 输入文件的名字
+    ## BLOCK__OFFSET__INSIDE__FILE 当前全局文件位置
+
+====================================Import/Export========================
+  //导出
+  EXPORT TABLE tablename [PARTITION (part_column="value"[, ...])] 
+  TO 'export_target_path'
+  //导入
+  IMPORT [[EXTERNAL] TABLE new_or_original_tablename [PARTITION (part_column="value"[, ...])]] 
+  FROM 'source_path'
+  [LOCATION 'import_target_path']
+  > export table test to 'xxx';
+
+=====================================授权============================
+  //开启授权，需要修改配置文件  @@http://www.myexception.cn/database/441485.html
+  //创建和删除角色
+  CREATE ROLE role_name
+  DROP ROLE role_name
+  // 授权/取消授权
+  GRANT ROLE role_name [, role_name] ...
+  TO principal_specification [, principal_specification] ...
+
+  REVOKE ROLE role_name [, role_name] ...
+  FROM principal_specification [, principal_specification] ...
+
+  principal_specification
+	: USER user
+  	| GROUP group
+  	| ROLE role
+  //查看
+  SHOW ROLE GRANT principal_specification
+  //授权
+  The following privileges are supported in Hive:
+    ALL - Gives users all privileges
+    ALTER - Allows users to modify the metadata of an object
+    UPDATE - Allows users to modify the physical data of an object
+    CREATE - Allows users to create objects. For a database, this means users can create tables, and for a table, this means users can create partitions
+    DROP - Allows users to drop objects
+    INDEX - Allows users to create indexes on an object (Note: this is not currently implemented)
+    LOCK - Allows users to lock or unlock tables when concurrency is enabled
+    SELECT - Allows users to access data for objects
+    SHOW_DATABASE - Allows users to view available databases
+  //授权
+  GRANT
+    priv_type [(column_list)]
+      [, priv_type [(column_list)]] ...
+    [ON object_type]
+    TO principal_specification [, principal_specification] ...
+    [WITH GRANT OPTION]
+
+  REVOKE
+	priv_type [(column_list)]
+      [, priv_type [(column_list)]] ...
+    [ON object_type priv_level]
+    FROM principal_specification [, principal_specification] ...
+
+  REVOKE ALL PRIVILEGES, GRANT OPTION
+    FROM user [, user] ...
+
+  object_type:
+	  TABLE
+  	  | DATABASE
+  priv_level:
+	  db_name
+  	  | tbl_name
+  //查看权限
+  SHOW GRANT principal_specification
+  [ON object_type priv_level [(column_list)]]
+
+=================================ORC File Format=============================
+  //Optimized Row Columnar file format
+
+=================================Index==============================
+  //creat index index_name on table tb_name as 'xxx' [with deferred rebuild] @@ http://f.dataguru.cn/thread-213078-1-1.html
+  with deferred rebuild,创建的索引为空，通过alter index index_name on table tb_name 创建
