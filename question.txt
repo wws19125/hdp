@@ -1,0 +1,1 @@
+几种流的处理  inputstream fileinputstream

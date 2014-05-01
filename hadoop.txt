@@ -1,0 +1,153 @@
+第1章节:
+> Hadoop背景
+> HDFS设计目标
+> HDFS不适合的场景
+> HDFS架构详尽分析
+> MapReduce的基本原理
+
+ 
+
+第2章节
+> Hadoop的版本介绍
+> 安装单机版Hadoop
+> 安装Hadoop集群
+
+ 
+
+第3章节 
+> HDFS命令行基本操作
+> Namenode的工作机制
+> HDFS基本配置管理
+
+ 
+
+ 第4章节
+> HDFS应用实战：图片服务器(1) - 系统设计
+> 应用的环境搭建 php + bootstrap + java
+> 使用Hadoop Java API实现向HDFS写入文件
+
+ 
+
+第5章节 
+> HDFS应用实战：图片服务器(2)
+> 使用Hadoop Java API实现读取HDFS中的文件
+> 使用Hadoop Java API实现获取HDFS目录列表
+> 使用Hadoop Java API实现删除HDFS中的文件
+
+
+第6章节
+> MapReduce的基本原理
+> MapReduce的运行过程
+> 搭建MapReduce的java开发环境
+> 使用MapReduce的java接口实现WordCount
+
+ 
+
+第7章节
+> WordCount运算过程分析
+> MapReduce的combiner
+> 使用MapReduce实现数据去重
+> 使用MapReduce实现数据排序
+> 使用MapReduce实现数据平均成绩计算
+
+ 
+
+第8章节
+> HBase详细介绍
+> HBase的系统架构
+> HBase的表结构，RowKey，列族和时间戳
+> HBase中的Master，Region以及Region Server
+
+
+第9章节
+> 使用HBase实现微博应用（1）
+> 用户注册，登陆和注销的设计
+> 搭建环境 struts2 + jsp + bootstrap + jquery + HBase Java API
+> HBase和用户相关的表结构设计
+> 用户注册的实现
+
+ 
+
+第10章节 
+> 使用HBase实现微博应用（2）
+> 使用session实现用户登录和注销
+> “关注"功能的设计 
+> “关注"功能的表结构设计
+> “关注"功能的实现
+
+
+第11章节
+> 使用HBase实现微博应用（3）
+> “发微博"功能的设计
+> “发微博"功能的表结构设计
+> “发微博"功能的实现 
+> 展现整个应用的运行
+
+ 
+
+第12章节 
+> HBase与MapReduce介绍
+> HBase如何使用MapReduce
+
+ 
+
+第13章节 
+
+> HBase应用实战：话单查询与统计（1）
+> 应用的整体设计
+> 开发环境搭建
+> 表结构设计
+
+ 
+
+第14章节 
+> HBase应用实战：话单查询与统计（2）
+> 话单入库单设计与实现
+> 话单查询的设计与实现
+
+ 
+
+第15章节
+> HBase应用实战：话单查询与统计（3）
+> 统计功能设计 
+> 统计功能实现
+
+ 
+
+第16章节 
+> 深入MapReduce（1）
+> split的实现详解
+> 自定义输入的实现
+> 实例讲解
+
+ 
+
+第17章节 
+> 深入MapReduce（2）
+> Reduce的partition 
+> 实例讲解
+
+ 
+
+第18章节 
+> Hive入门
+> 安装Hive
+> 使用Hive向HDFS存入结构化数据
+> Hive的基本使用
+
+
+第19章节 
+> 使用MySql作为Hive的元数据库
+> Hive结合MapReduce
+
+ 
+
+第20章节
+> Hive应用实战:数据统计（1）
+> 应用设计，表结构设计
+
+ 
+
+第21章节 
+> Hive应用实战：数据统计（2）
+> 数据录入与统计的实现

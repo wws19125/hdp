@@ -1,0 +1,454 @@
+/*************************************************************
+******************************阅读须知*************************
+************** //新的知识点               **********************
+************** ##上一个//知识点内的小知识点  *********************
+************** @@ 传送门，具体解释地方	 *********************
+************** > 代码			 *********************
+**************************************************************/
+
+===============================Tutorial=======================
+  //类型
+  //整型
+  tinyint 1byte
+  smallint 2byte
+  int 4byte
+  bigint 8byte
+  //boolean
+  boolean true/false
+  //floationg point numbers
+  float 单精度
+  double double precision
+  //String type
+  String
+  //The Types are organized in the following hierarchy (where the parent is a super type of all the children instances):
+
+    Type
+        Primitive Type
+            Number
+                DOUBLE
+                    FLOAT
+                        BIGINT
+                            INT
+                                SMALLINT
+                                    TINYINT
+                    STRING
+            BOOLEAN
+  //复杂类型
+  Structs
+  Maps
+  Arrays
+  
+  //各种操作，函数，清参考手册Tutorial 传送门:https://cwiki.apache.org/confluence/display/Hive/Tutorial#Tutorial-DataUnits
+  
+  //表操作
+  table->partition->Bucket(cluster,clustered by 和 sorted by 不影响数据的导入，用户需要自己分桶和排序)
+  bucket主要作用是：
+  1 数据的采样
+  2 提升某些查询效率，例如mapside join
+  //bucket的创建：
+  >create table test(...) 
+  >partitioned by(...) 
+  >cluster by(xx) sorted by(xx) into n bucket 
+  >row format delimited fields 
+  >terminated by ',';
+  //采样
+  >select * from tests tablesample(bucket x out of y on id); //y需要为bucket总算的因式或这倍数,这样x/y*n，取到总数的这些倍
+  //row format delimited
+  ## filelds
+  fields terminated by ','
+  ## collections arrays or  maps
+  collections items terminated by'2'
+  ## map keys 
+  map keys terminated by '3'
+  
+  //store as hive文件的存储 @@http://blog.csdn.net/yfkiss/article/details/7787742
+  ## textfile 默认格式，数据不做压缩，磁盘开销大，数据解析开销大
+  ## sequencefile hadoop api提供的一种二进制文件支持，使其具有使用方便、可分割、可压缩
+  ## rcfile 是一种行列存储相结合的存储方式。首先，其将数据按行分块，保证同一个record在一个块上，避免读一个记录需要读取多个block。其次，块数据列式存储，有利于数据压缩和快速的列存取
+  ## selfdefine 当用户的数据文件格式不能被当前 Hive 所识别的时候，可以自定义文件格式。用户可以通过实现inputformat和outputformat来自定义输入输出格式
+  //浏览数据表 分区
+  >show tables
+  >show tables 'xx.*'
+  >show partitions tablename
+  >describe tablename
+  >describe extended tablename
+  >desc extended tablename //详细
+  >describe extended tablename partition (xxxx);
+  //修改表
+  >alter table test drop partition (xxxx) //删除partition
+  //加载数据
+  ## load data ...
+  ## 直接将对应文件复制到相应位置，创建表的时候制定该位置 @@ http://blog.csdn.net/cnweike/article/details/6928620
+  >create external table test(...)
+  >row ...
+  >location 'path';
+  >dfs -put /xxx /xxx;
+  >from test ........
+  //合并 union
+  ## union all ,该合并只能出现在子句中，并且需要有别名（例子中tmp为别名）
+  > select id,name from
+  > (select a.id,a.name from tests a union all select b.id,b.name from test b) tmp;  
+  //数组操作
+  >create table test(arr ARRAY<type>);
+  >select test.arr[index] from xxx test;
+  //map
+  >create table test(mp map<type,type>);
+  >select mp[key] from test;
+===============================CLI操作=========================
+  //在命令行里面运行命令
+  hive -e 'command'
+  //执行文件中的命令
+  hive -f 'file'
+  // -S quit mode 
+  // !command 执行shell命令;dfs -option 执行hdfs命令
+  ================文件操作，搞不明白===========
+
+ ===============================DDL操作=======================
+create table test(a INT,b INT)
+[1] partition
+	  create table test() partitioned by(xxx xx,xxx xx) row format delimited fields terminated by ',';
+  //插入数据:
+  load data local inpath 'xxx' into table partition(xxx=xx);	  
+  
+  //增加具体分区，前提是分区已经建立好
+  alter table test add partition(xxx=xx,xxx=xx);
+  
+  //表操作
+  alter table test rename to newname
+  alter table test add columns(name type)
+  alter table test add columns(name type comment 'comment')
+  //替换所有的列
+  alter table test replace columns(name type,name type comment 'xxx')
+
+  //join操作 ,只有相等的条件才可以join
+  left right full outer join
+  // Joins are NOT commutative! Joins are left-associative regardless	 of whether they are LEFT or RIGHT joins.
+  //连接是左相关的
+  SELECT a.val1, a.val2, b.val, c.val FROM a JOIN b ON (a.key = b.key) LEFT OUTER JOIN c ON (a.key = c.key)
+  a join b 后，a.key就没了，后面a.key就不存在了
+  //left semi join，替代in/not in/exists/not exists,它的限制做用是：右边的表，只是做引用.
+  select a.key,a.value from a where a.key in (select b.key from b)
+  select a.key,a.value from a left semi join b on (a.key=b.key)
+  //如果要连接的表很小，可以直接在map里面执行，得出结果
+  select /*+ mapjoin(b) */ a.key,a.value from a join b on a.key = b.key  
+
+  //插入多张表
+  MULTITABLE INSERT
+   FROM src
+  INSERT OVERWRITE TABLE dest1 SELECT src.* WHERE src.key < 100
+  INSERT OVERWRITE TABLE dest2 SELECT src.key, src.value WHERE src.key >= 100 and src.key < 200
+  INSERT OVERWRITE TABLE dest3 PARTITION(ds='2008-04-08', hr='12') SELECT src.key WHERE src.key >= 200 and src.key < 300
+  INSERT OVERWRITE LOCAL DIRECTORY '/tmp/dest4.out' SELECT src.value WHERE src.key >= 300;
+
+
+ ================================DML操作=======================
+  //加载数据进入tb
+  load data [local] inpath 'xxx' [overwrite] into table xxx;
+  local 指定从本地读取，否则从hdfs读取文件
+  overwrite 删除原有数据，否则添加到末尾
+  //取数据
+  insert overwrite [local] directory 'path' select * from test;
+  //插入表数据
+  insert overwrite table test select * from test2;
+  insert into table test select * from test2;
+  //group by、order by同sql
+  //
+
+================================DDL手册=============================
+  //Overview
+  HiveQL DDL statements are documented here, including:
+
+    CREATE DATABASE/SCHEMA, TABLE, VIEW, FUNCTION, INDEX
+    DROP DATABASE/SCHEMA, TABLE, VIEW, INDEX
+    TRUNCATE TABLE
+    ALTER DATABASE/SCHEMA, TABLE, VIEW
+    MSCK REPAIR TABLE (or ALTER TABLE RECOVER PARTITIONS)
+    SHOW DATABASES/SCHEMAS, TABLES, TBLPROPERTIES, PARTITIONS, FUNCTIONS, INDEX[ES], COLUMNS, CREATE TABLE
+    DESCRIBE DATABASE, table_name, view_name
+  //database操作
+  ## create
+  create (database|schema) [IF NOT EXISTS] dbname
+  [comment database_comment]
+  [location hdfs_path]
+  [with dbproperties (property_name=property_value...)]
+  ## drop
+  DROP (DATABASE|SCHEMA) [IF EXISTS] database_name [RESTRICT|CASCADE];
+  ## alter 
+  ALTER (DATABASE|SCHEMA) database_name SET DBPROPERTIES (property_name=property_value, ...);
+  // External Tables 附加表
+  如果你已经构建好了表数据，那么可以采用这个表，需要指定location
+  //创建一个虚表 ctas
+  ## 缺点
+     ## 目标表不能有partition
+     ## 目标表不能为external 表
+  >create table test
+  >row format serde 'org.apache.hadoop.hive.serde2.columnar.ColumnarSerde'
+  >select (key%1024) new_key,concat(key,val) key_value
+  >from key_value_store
+  >sort by new_key,key_value;
+  //创建副本表 create table like
+  ## 从一个已经存在的表创建一个同样表结构的表（不包含数据)
+  >create table test1 like test; 
+  //创建Bucketed Sorted Tables
+  ## A skewed table is a special type of table where the values that appear very often (heavy skew) are split out into separate files and rest of the values go to some other file..
+  >create table test(key string,name string)
+  >skewed by (key) on('1','2','5');
+  >CREATE TABLE list_bucket_multiple (col1 STRING, col2 int, col3 STRING) 
+  >SKEWED BY (col1, col2) ON (('s1',1), ('s3',3), ('s13',13), ('s78',78));
+  //drop table [if exists] tablename
+  //删除表/分区数据
+  TRUNCATE TABLE table_name [PARTITION partition_spec];
+  partition_spec:
+  : (partition_col = partition_col_value, partition_col = partiton_col_value, ...)
+  //修改表/分区/列
+  ## alter table test rename to xxx
+  ## alter table set tblproperties properties
+  ALTER TABLE table_name SET TBLPROPERTIES table_properties
+  table_properties:
+  : (property_name = property_value, property_name = property_value, ... )
+  >alter table test set tblproperties('comment'=xxx);
+  ##分区操作
+    ## 增加具体分支
+    alter table test add [if not exisits] partition partition_spec [ location 'location'] partition_spec [....]
+    ## 动态分支管理
+       ## 重命名
+       > alter table test partition (academy=xxx) rename to partition (academy=xxx);
+       ## 复制分区数据
+       >alter table test exchange partition(xxx=xxx) with table t;
+       ## 恢复分区
+       msck repair table table_name;
+       ## 删除分区
+       > alter table test drop [if exists] partition partition_spec;
+       > alter table test drop [if exists] partition partition_spec IGNORE PROTECTION //对于写了 NO DROP CASCADE保护的表
+       ## 压缩/解压分区
+       ALTER TABLE table_name ARCHIVE PARTITION partition_spec;
+       ALTER TABLE table_name UNARCHIVE PARTITION partition_spec;
+  //修改表或者分区
+  ## 修改文件格式
+  alter table test [partition partition_spec] set fileformat file_format
+  ## 修改位置
+  alter table test [partition partition_spec] set location 'location'
+  ## touch 
+  alter table test touche [partition partition_spec]
+  //压缩
+  
+  //修改列
+  alter table test change [column] col_old_name col_new_name column_type [comment col_comment] [first|after column_name]
+  >alter table test change id uid int first;
+  //新增|替换
+  alter table test add|replace columns (col_name type,..);
+  //视图操作
+  CREATE VIEW [IF NOT EXISTS] view_name [(column_name [COMMENT column_comment], ...) ]
+  [COMMENT view_comment]
+  [TBLPROPERTIES (property_name = property_value, ...)]
+  AS SELECT ...
+  //删除视图 
+  > drop view test;
+  //显示创建语句
+  > show create table test;
+  //设置视图属性
+  > alter view test set tblproperties table_pro;
+  //修改view的select约束
+  alter view view_name as select_sql
+  
+  //索引操作
+  //创建
+  CREATE INDEX index_name
+  ON TABLE base_table_name (col_name, ...)
+  AS index_type
+  [WITH DEFERRED REBUILD]
+  [IDXPROPERTIES (property_name=property_value, ...)]
+  [IN TABLE index_table_name]
+  [
+	 [ ROW FORMAT ...] STORED AS ...
+   	 | STORED BY ...
+  ]
+  [LOCATION hdfs_path]
+  [TBLPROPERTIES (...)]
+  [COMMENT "index comment"]
+  //删除
+  drop index [if exists] index_name on table_name
+  //修改
+  >alter index index_name on table_name [partition partition_spec] rebuild
+  
+  -----------------------------------------------------------------------
+  //函数操作
+  //创建临时func
+  create temporary function function_name as class_name //在本次对话中有效
+  //删除func
+  drop temporary function [if exists] function_name
+  //permanent functions
+  -----------------------------------------------------------------------
+
+  //权限管理
+  //show命令
+  SHOW (DATABASES|SCHEMAS) [LIKE identifier_with_wildcards];
+  SHOW TABLES [IN database_name] [identifier_with_wildcards];
+  SHOW PARTITIONS table_name
+  SHOW PARTITIONS table_name PARTITION(ds='2010-03-03');            (Hive 0.6 and later)
+  SHOW PARTITIONS table_name PARTITION(hr='12');                    (Hive 0.6 and later)
+  SHOW PARTITIONS table_name PARTITION(ds='2010-03-03', hr='12');   (Hive 0.6 and later)
+  //指定数据库
+  SHOW PARTITIONS [db_name.]table_name [PARTITION(partition_desc)]            (Hive 0.13.0 and later)
+  //显示属性
+  SHOW TBLPROPERTIES tbname; //全部属性
+  SHOW TBLPROPERTIES tbname('xxx'); //指定属性
+  //show create
+  SHOW CREATE TABLE ([db_name.]table_name|view_name)
+  //show index
+  SHOW [FORMATTED] (INDEX|INDEXES) ON table_name [(FROM|IN) db_name]
+  //show columns
+  SHOW COLUMNS (FROM|IN) table_name [(FROM|IN) db_name]
+  // show functions
+  SHOW FUNCTIONS 'XXX‘
+  ---------------------------------------------------------------------
+  //show 权限
+  //show locks
+  //show transactions
+  //show compacttions
+  ----------------------------------------------------------------------
+
+  // describe
+  //describe database db_name
+  //DESCRIBE [EXTENDED|FORMATTED] [db_name.]table_name[DOT col_name ( [DOT field_name] | [DOT '$elem$'] | [DOT '$key$'] | [DOT '$value$'] )* ]
+  //DESCRIBE [EXTENDED|FORMATTED] [db_name.]table_name PARTITION partition_spec
+  //DESCRIBE page_view PARTITION (ds='2008-08-08');
+
+================================DML手册==================================
+
+
+================================Select==================================
+  >select * from test where xx>xx;
+  // ALL and DISTINCT 
+  >select col from test;
+  >select distinct col from test;
+  // HAVING
+  >select x from x group by x having sum(x)>0;
+  >SELECT col1 FROM (SELECT col1, SUM(col2) AS col2sum FROM t1 GROUP BY col1) t2 WHERE t2.col2sum > 10
+  // LIMIT
+  >select * from x limit x;
+  //order by / sort by
+  order by 保证全部顺序
+  sort by 只是在本次reducer中保持顺序
+  
+  //Lateral View @@ http://hi.baidu.com/lzpsky/item/a5c747ccecd94e350831c6d2
+  //使用explore等函数时候，有一些限制
+	## No other expressions are allowed in SELECT
+           SELECT pageid, explode(adid_list) AS myCol... is not supported
+    	## UDTF's can't be nested
+           SELECT explode(explode(adid_list)) AS myCol... is not supported
+    	## GROUP BY / CLUSTER BY / DISTRIBUTE BY / SORT BY is not supported
+           SELECT explode(adid_list) AS myCol ... GROUP BY myCol is not supported
+    这时就可以利用later view 了
+  
+====================================Union===============================
+  //语法
+  select_statement UNION ALL select_statement UNION ALL select_statement ...
+
+====================================子查询===============================
+  //在from中运用子查询
+  SELECT ... FROM (subquery) name ...
+  SELECT ... FROM (subquery) AS name ...   (Note: Only valid starting with Hive 0.13.0)
+  //在where中
+  sql_statement where xx in (subqueries)
+  sql_statement where exists (subqueries)
+    ## 缺点
+      ## 子查询只能在表达式的右边
+      ## in/not in 子查询只能选一列
+      ## exists/not exists 必须至少有一个关联谓词
+      ## 对父查询的引用，只能在where中
+
+======================================数据采样(Sampling)====================
+  //语法
+  table_sample: TABLESAMPLE (BUCKET x OUT OF y [ON colname])
+  colname可以换成rand()
+  //Block Sampling 按照数据大小比例取数据，以block尺寸为基准.
+  block_sample: TABLESAMPLE (n PERCENT)
+  也可指定读取大小
+  block_sample: TABLESAMPLE (ByteLengthLiteral)
+  ByteLengthLiteral : (Digit)+ ('b' | 'B' | 'k' | 'K' | 'm' | 'M' | 'g' | 'G')
+  也可指定row count
+  block_sample: TABLESAMPLE (n ROWS)
+
+
+======================================解释查询=============================
+  //语法
+  EXPLAIN [EXTENDED|DEPENDENCY] query //EXTENDED和DEPENDENCY可以提供额外的信息，一般都是物理信息，比如文件名.
+
+=====================================虚拟列 Virtual Columns==================
+  // 0.8.0提供了两个虚拟列
+    ## INPUT__FILE__NAME 输入文件的名字
+    ## BLOCK__OFFSET__INSIDE__FILE 当前全局文件位置
+
+====================================Import/Export========================
+  //导出
+  EXPORT TABLE tablename [PARTITION (part_column="value"[, ...])] 
+  TO 'export_target_path'
+  //导入
+  IMPORT [[EXTERNAL] TABLE new_or_original_tablename [PARTITION (part_column="value"[, ...])]] 
+  FROM 'source_path'
+  [LOCATION 'import_target_path']
+  > export table test to 'xxx';
+
+=====================================授权============================
+  //开启授权，需要修改配置文件  @@http://www.myexception.cn/database/441485.html
+  //创建和删除角色
+  CREATE ROLE role_name
+  DROP ROLE role_name
+  // 授权/取消授权
+  GRANT ROLE role_name [, role_name] ...
+  TO principal_specification [, principal_specification] ...
+
+  REVOKE ROLE role_name [, role_name] ...
+  FROM principal_specification [, principal_specification] ...
+
+  principal_specification
+	: USER user
+  	| GROUP group
+  	| ROLE role
+  //查看
+  SHOW ROLE GRANT principal_specification
+  //授权
+  The following privileges are supported in Hive:
+    ALL - Gives users all privileges
+    ALTER - Allows users to modify the metadata of an object
+    UPDATE - Allows users to modify the physical data of an object
+    CREATE - Allows users to create objects. For a database, this means users can create tables, and for a table, this means users can create partitions
+    DROP - Allows users to drop objects
+    INDEX - Allows users to create indexes on an object (Note: this is not currently implemented)
+    LOCK - Allows users to lock or unlock tables when concurrency is enabled
+    SELECT - Allows users to access data for objects
+    SHOW_DATABASE - Allows users to view available databases
+  //授权
+  GRANT
+    priv_type [(column_list)]
+      [, priv_type [(column_list)]] ...
+    [ON object_type]
+    TO principal_specification [, principal_specification] ...
+    [WITH GRANT OPTION]
+
+  REVOKE
+	priv_type [(column_list)]
+      [, priv_type [(column_list)]] ...
+    [ON object_type priv_level]
+    FROM principal_specification [, principal_specification] ...
+
+  REVOKE ALL PRIVILEGES, GRANT OPTION
+    FROM user [, user] ...
+
+  object_type:
+	  TABLE
+  	  | DATABASE
+  priv_level:
+	  db_name
+  	  | tbl_name
+  //查看权限
+  SHOW GRANT principal_specification
+  [ON object_type priv_level [(column_list)]]
+
+=================================ORC File Format=============================
+  //Optimized Row Columnar file format
+
+=================================Index==============================
+  //creat index index_name on table tb_name as 'xxx' [with deferred rebuild] @@ http://f.dataguru.cn/thread-213078-1-1.html
+  with deferred rebuild,创建的索引为空，通过alter index index_name on table tb_name 创建
