@@ -351,7 +351,7 @@ public abstract class FileInputFormat<K, V> extends InputFormat<K, V> {
         }
         if (isSplitable(job, path)) {
           long blockSize = file.getBlockSize();
-          long splitSize = computeSplitSize(blockSize, minSize, maxSize); //blockSize不是指block的大小，而是指该file中的block个数
+          long splitSize = computeSplitSize(blockSize, minSize, maxSize); //从computeSplitSize上来看，选的是max(minSize，min(blockSize,maxSize)),可以通过设置minSize的值来改变默认的inputSize大小
 
           long bytesRemaining = length;
           while (((double) bytesRemaining)/splitSize > SPLIT_SLOP) {
