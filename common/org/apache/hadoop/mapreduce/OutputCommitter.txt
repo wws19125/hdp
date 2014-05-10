@@ -1,0 +1,10 @@
+OutputCommitter
+它负责描述一个mr job的task 的提交
+mr 框架靠OutputCommitter 去做如下工作：
+ 1 初始化Job,例如，job初始化工程中，创建临时的输出目录
+ 2 job完成后，处理清理job的工作。例如移除临时目录
+ 3 设置task的临时目录
+ 4 检查task是否需要commit.这是为了避免不需要被提交的task被提交了
+ 5 提交task
+ 6 放弃task的提交
+类中的方法可以通过很多途径调用。知道是谁调用的比较重要。而且这些方法可能会不止一次被调用
