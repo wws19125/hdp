@@ -8,3 +8,7 @@ mr 框架靠OutputCommitter 去做如下工作：
  5 提交task
  6 放弃task的提交
 类中的方法可以通过很多途径调用。知道是谁调用的比较重要。而且这些方法可能会不止一次被调用
+
+
+job开始执行之前，框架会调用OutputCommitter.setupJob()为Job创建一个输出路径；如果Job成功完成，框架会调用OutputCommitter.commitJob()提交job的输出；如果失败了,框架会调用abortJob()撤销job的输出。对应与job下的task，同样牵涉到创建、提交、撤销三个动作,分别由OutputCommitter.setupTask()、OutputCommitter.commmitTask()、OutputCommitter.abortTask()来完成。如果一个task没有输出，则不用提交这个task,这个可以通过OutputCommitter.needsTaskCommit()来判断;
+

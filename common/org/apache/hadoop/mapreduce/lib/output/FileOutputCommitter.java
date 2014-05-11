@@ -73,7 +73,7 @@ public class FileOutputCommitter extends OutputCommitter {
                              TaskAttemptContext context) throws IOException {
     this(outputPath, (JobContext)context);
     if (outputPath != null) {
-      workPath = getTaskAttemptPath(context, outputPath);
+	workPath = getTaskAttemptPath(context, outputPath); //拼接输出路径
     }
   }
   
@@ -122,7 +122,7 @@ public class FileOutputCommitter extends OutputCommitter {
    * @return the location of pending job attempts.
    */
   private static Path getPendingJobAttemptsPath(Path out) {
-    return new Path(out, PENDING_DIR_NAME);
+      return new Path(out, PENDING_DIR_NAME);  //拼接
   }
   
   /**
@@ -285,7 +285,7 @@ public class FileOutputCommitter extends OutputCommitter {
    */
   public void setupJob(JobContext context) throws IOException {
     if (hasOutputPath()) {
-      Path jobAttemptPath = getJobAttemptPath(context);
+	Path jobAttemptPath = getJobAttemptPath(context); //获取路径
       FileSystem fs = jobAttemptPath.getFileSystem(
           context.getConfiguration());
       if (!fs.mkdirs(jobAttemptPath)) {
@@ -424,7 +424,7 @@ public class FileOutputCommitter extends OutputCommitter {
       if(taskAttemptPath == null) {
         taskAttemptPath = getTaskAttemptPath(context);
       }
-      Path committedTaskPath = getCommittedTaskPath(context);
+      Path committedTaskPath = getCommittedTaskPath(context); //获取task的临时存储目录
       FileSystem fs = taskAttemptPath.getFileSystem(context.getConfiguration());
       if (fs.exists(taskAttemptPath)) {
         if(fs.exists(committedTaskPath)) {
