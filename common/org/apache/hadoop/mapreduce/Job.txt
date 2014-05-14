@@ -1,0 +1,2 @@
+org.apache.hadoop.mapreduce.Job
+1282行，waitForCompletion()，这里，hadoop通过submit()提交Job给JobTracker

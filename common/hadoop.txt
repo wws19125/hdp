@@ -1,0 +1,2 @@
+job.waitForCompletion(true)方法，提交Job给JobTracker，等待Job的完成.
+
