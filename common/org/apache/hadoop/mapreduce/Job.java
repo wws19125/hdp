@@ -1320,7 +1320,7 @@ public class Job extends JobContextImpl implements JobContext {
     IntegerRanges mapRanges = getProfileTaskRange(true);
     IntegerRanges reduceRanges = getProfileTaskRange(false);
     int progMonitorPollIntervalMillis = 
-      Job.getProgressPollInterval(clientConf);
+	Job.getProgressPollInterval(clientConf);  //刷新周期
     /* make sure to report full progress after the job is done */
     boolean reportedAfterCompletion = false;
     boolean reportedUberMode = false;
