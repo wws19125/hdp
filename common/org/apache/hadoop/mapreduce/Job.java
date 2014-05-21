@@ -82,8 +82,8 @@ public class Job extends JobContextImpl implements JobContext {
   private static final long MAX_JOBSTATUS_AGE = 1000 * 2;
   public static final String OUTPUT_FILTER = "mapreduce.client.output.filter";
   /** Key in mapred-*.xml that sets completionPollInvervalMillis */
-  public static final String COMPLETION_POLL_INTERVAL_KEY = 
-    "mapreduce.client.completion.pollinterval";
+    public static final String COMPLETION_POLL_INTERVAL_KEY =   
+	"mapreduce.client.completion.pollinterval"; //应该是周期
   
   /** Default completionPollIntervalMillis is 5000 ms. */
   static final int DEFAULT_COMPLETION_POLL_INTERVAL = 5000;
@@ -306,7 +306,7 @@ public class Job extends JobContextImpl implements JobContext {
    * immediately
    * @throws IOException
    */
-  synchronized void updateStatus() throws IOException {
+    synchronized void updateStatus() throws IOException { //这个地方难以理解，暂时放着
     try {
       this.status = ugi.doAs(new PrivilegedExceptionAction<JobStatus>() {
         @Override
