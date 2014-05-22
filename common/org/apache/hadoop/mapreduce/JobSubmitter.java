@@ -345,11 +345,11 @@ class JobSubmitter {
                                                      job.getConfiguration());
     //configure the command line options correctly on the submitting dfs
     Configuration conf = job.getConfiguration();
-    InetAddress ip = InetAddress.getLocalHost();
+    InetAddress ip = InetAddress.getLocalHost(); //获取IP
     if (ip != null) {
-      submitHostAddress = ip.getHostAddress();
-      submitHostName = ip.getHostName();
-      conf.set(MRJobConfig.JOB_SUBMITHOST,submitHostName);
+	submitHostAddress = ip.getHostAddress();  //要提交的地址
+	submitHostName = ip.getHostName(); //名称
+	conf.set(MRJobConfig.JOB_SUBMITHOST,submitHostName); //设置到configuration中去
       conf.set(MRJobConfig.JOB_SUBMITHOSTADDR,submitHostAddress);
     }
     JobID jobId = submitClient.getNewJobID();
@@ -358,7 +358,7 @@ class JobSubmitter {
     JobStatus status = null;
     try {
       conf.set(MRJobConfig.USER_NAME,
-          UserGroupInformation.getCurrentUser().getShortUserName());
+	       UserGroupInformation.getCurrentUser().getShortUserName());  //设置用户名
       conf.set("hadoop.http.filter.initializers", 
           "org.apache.hadoop.yarn.server.webproxy.amfilter.AmFilterInitializer");
       conf.set(MRJobConfig.MAPREDUCE_JOB_DIR, submitJobDir.toString());

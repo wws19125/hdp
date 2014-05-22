@@ -1265,10 +1265,10 @@ public class Job extends JobContextImpl implements JobContext {
     status = ugi.doAs(new PrivilegedExceptionAction<JobStatus>() {
       public JobStatus run() throws IOException, InterruptedException, 
       ClassNotFoundException {
-        return submitter.submitJobInternal(Job.this, cluster);
+	  return submitter.submitJobInternal(Job.this, cluster);  //提交job，其中做了很多的工作，比如授权等
       }
     });
-    state = JobState.RUNNING;
+    state = JobState.RUNNING;  //更新状态
     LOG.info("The url to track the job: " + getTrackingURL());
    }
   
