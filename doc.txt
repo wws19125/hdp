@@ -5,7 +5,13 @@ interface comparator<T>
 classloader
 JNI java native interface   native关键字b
 StringBuilder 传参引用
+volatile
+serviceloader
 抽象方法只能放在抽象类中
 ==============================================hadoop 压缩=====================
   //CompressionCodec 
   CompressionCodec使用createOutputStream()方法构造一个CompressionOutputStream流（继承自OutputStream），没有压缩的数据通过IOUtils.copyBytes()方法，从输入的文件流中复制写入CompressionOutputStream流，最终以压缩格式写入底层的输出流中.
+
+====================================================================
+hadoop 执行流程
+由hadoop中的job类分装参数，提交任务
